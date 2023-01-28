@@ -55,7 +55,7 @@ internal class Optimal : AbstractAlgorithm
 
         int swapOutReference = -1;
         int maxUsageIndex = 0;
-        for (int i = 0; i < FrameCount; i++)
+        for (int i = FrameCount - 1; i >= 0; i--)
         {
             int candidateSwapOut = timeTable[iteration - 1, i];
             if (nextUsage[candidateSwapOut].Count == 0)
@@ -70,5 +70,14 @@ internal class Optimal : AbstractAlgorithm
             }
         }
         ReplaceSwapOutReference(timeTable, iteration, references, swapOutReference);
-    }    
+    }
+
+    protected override void ReplaceSwapOutReference(int[,] timeTable, int iteration, List<int> references, int swapOutReference)
+    {
+        for (int i = 0; i < FrameCount; i++)
+        {
+            timeTable[iteration, i] = swapOutReference == timeTable[iteration - 1, i] ?
+                references[iteration] : timeTable[iteration - 1, i];
+        }
+    }
 }

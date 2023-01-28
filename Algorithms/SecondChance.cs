@@ -8,7 +8,6 @@ internal class SecondChance : AbstractAlgorithm
     }
 
     private Dictionary<int, bool> secondChance = new();
-    private int order = 0;
 
     protected override void UpdateFramesHit(int[,] timeTable, int iteration, List<int> references)
     {
@@ -16,7 +15,10 @@ internal class SecondChance : AbstractAlgorithm
 
         for (int i = 0; i < FrameCount; i++)
         {
-            timeTable[iteration, i] = timeTable[iteration - 1, i];
+            if (Math.Abs(timeTable[iteration - 1, i]) == references[iteration])
+                timeTable[iteration, i] = -Math.Abs(timeTable[iteration - 1, i]);
+            else
+                timeTable[iteration, i] = timeTable[iteration - 1, i];
         }
     }
 
@@ -30,23 +32,45 @@ internal class SecondChance : AbstractAlgorithm
             return;
         }
 
-        int swapOutReference = -1;
-        for (int i = order++ % FrameCount, j = 0;
-            j < FrameCount;
-            i = order++ % FrameCount, j++)
+        for (int i = 0; i < FrameCount; i++)
         {
-            int candidateSwapOut = timeTable[iteration - 1, i];
+            timeTable[iteration, i] = timeTable[iteration - 1, i];
+        }
+
+        while (true)
+        {
+            int candidateSwapOut = Math.Abs(timeTable[iteration, FrameCount - 1]);
             if (secondChance[candidateSwapOut])
             {
                 secondChance[candidateSwapOut] = false;
+                BringToFront(timeTable, iteration, references);
             }
-            else
-            {
-                swapOutReference = candidateSwapOut;
-                break;
-            }
+            else break;
         }
-        if (swapOutReference == -1) swapOutReference = timeTable[iteration - 1, order++ % FrameCount];
-        ReplaceSwapOutReference(timeTable, iteration, references, swapOutReference);
+        ReplaceSwapOutReference(timeTable, iteration, references, references[iteration]);
+    }
+
+    protected override void ReplaceSwapOutReference(int[,] timeTable, int iteration, List<int> references, int swapOutReference)
+    {
+        int[] tableRow = new int[FrameCount];
+        Buffer.BlockCopy(timeTable, FrameCount * iteration * sizeof(int), tableRow, 0, FrameCount * sizeof(int));
+
+        for (int i = 1; i < FrameCount; i++)
+        {
+            timeTable[iteration, i] = tableRow[i - 1];
+        }
+        timeTable[iteration, 0] = references[iteration];
+    }
+
+    private void BringToFront(int[,] timeTable, int iteration, List<int> references)
+    {
+        int[] tableRow = new int[FrameCount - 1];
+        Buffer.BlockCopy(timeTable, FrameCount * iteration * sizeof(int), tableRow, 0, (FrameCount - 1) * sizeof(int));
+
+        timeTable[iteration, 0] = Math.Abs(timeTable[iteration, FrameCount - 1]);
+        for (int i = 1; i < FrameCount; i++)
+        {
+            timeTable[iteration, i] = tableRow[i - 1];
+        }
     }
 }

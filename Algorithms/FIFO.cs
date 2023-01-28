@@ -26,19 +26,11 @@ public class FIFO : AbstractAlgorithm
     {
         if (iteration < FrameCount)
         {
-            for (int i = 1; i <= iteration; i++)
-            {
-                timeTable[iteration, i] = timeTable[iteration - 1, i - 1];
-            }
-            timeTable[iteration, 0] = references[iteration];
+            FillAnEmptyFrame(timeTable, iteration, references);
         }
         else
         {
-            for (int i = 1; i < FrameCount; i++)
-            {
-                timeTable[iteration, i] = timeTable[iteration - 1, i - 1];
-            }
-            timeTable[iteration, 0] = references[iteration];
+            ReplaceSwapOutReference(timeTable, iteration, references, references[iteration]);
         }
     }
 }

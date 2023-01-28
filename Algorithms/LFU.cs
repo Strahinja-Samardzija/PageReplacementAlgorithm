@@ -13,10 +13,7 @@ internal class LFU : AbstractAlgorithm
     {
         frequencies[references[iteration]]++;
 
-        for (int i = 0; i < FrameCount; i++)
-        {
-            timeTable[iteration, i] = timeTable[iteration - 1, i];
-        }
+        SortByFrequencyDescending(timeTable, iteration - 1, iteration);
     }
 
     protected override void UpdateFramesMiss(int[,] timeTable, int iteration, List<int> references)
@@ -31,17 +28,23 @@ internal class LFU : AbstractAlgorithm
             return;
         }
 
-        int swapOutReference = -1;
-        int minFrequency = int.MaxValue;
+        ReplaceSwapOutReference(timeTable, iteration, references, timeTable[iteration - 1, FrameCount - 1]);
+
+        SortByFrequencyDescending(timeTable, iteration, iteration);
+    }
+
+    private void SortByFrequencyDescending(int[,] timeTable, int srcIteration, int destIteration)
+    {
+        int[] tableRow = new int[FrameCount];
+        Buffer.BlockCopy(timeTable, FrameCount * srcIteration * sizeof(int), tableRow, 0, FrameCount * sizeof(int));
+        var sorted =
+            from reference in tableRow
+            orderby frequencies[reference] descending
+            select reference;
+
         for (int i = 0; i < FrameCount; i++)
         {
-            int candidateSwapOut = timeTable[iteration - 1, i];
-            if (frequencies[candidateSwapOut] < minFrequency)
-            {
-                minFrequency = frequencies[candidateSwapOut];
-                swapOutReference = candidateSwapOut;
-            }
+            timeTable[destIteration, i] = sorted.ElementAt(i);
         }
-        ReplaceSwapOutReference(timeTable, iteration, references, swapOutReference);
     }
 }

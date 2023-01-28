@@ -39,7 +39,7 @@ internal class ConsolePrinter
     private void WritePageFaultRatio()
     {
         Console.WriteLine($"Efikasnost algoritma: PF = {PfRatio * PageFaultVector.Length}" +
-            $" => pf = {PfRatio * PageFaultVector.Length} / {PageFaultVector.Length} = {Math.Round(PfRatio * 100)} %");
+            $" => pf = {PfRatio * PageFaultVector.Length} / {PageFaultVector.Length} = {Math.Round(PfRatio * 100)}%");
     }
 
     private void WriteTimeTable()
@@ -54,7 +54,9 @@ internal class ConsolePrinter
                 }
                 else
                 {
-                    Console.Write($" {TimeTable[j, i],-2}");
+                    var value = "" + (TimeTable[j, i] > 0 ?
+                        TimeTable[j, i] : "" + -TimeTable[j, i] + "r");
+                    Console.Write($" {value,-2}");
                 }
             }
             Console.WriteLine();

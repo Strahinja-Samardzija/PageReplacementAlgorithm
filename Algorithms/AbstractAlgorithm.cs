@@ -50,22 +50,22 @@ public abstract class AbstractAlgorithm
     protected abstract void UpdateFramesHit(int[,] timeTable, int iteration, List<int> references);
     protected abstract void UpdateFramesMiss(int[,] timeTable, int iteration, List<int> references);
 
-    protected void ReplaceSwapOutReference(int[,] timeTable, int iteration, List<int> references, int swapOutReference)
+    virtual protected void ReplaceSwapOutReference(int[,] timeTable, int iteration, List<int> references, int swapOutReference)
     {
-        for (int i = 0; i < FrameCount; i++)
+        for (int i = 1; i < FrameCount; i++)
         {
-            timeTable[iteration, i] = swapOutReference == timeTable[iteration - 1, i] ?
-                references[iteration] : timeTable[iteration - 1, i];
+            timeTable[iteration, i] = timeTable[iteration - 1, i - 1];
         }
+        timeTable[iteration, 0] = references[iteration];
     }
 
     protected void FillAnEmptyFrame(int[,] timeTable, int iteration, List<int> references)
     {
-        for (int i = 0; i < iteration; i++)
+        for (int i = 1; i <= iteration; i++)
         {
-            timeTable[iteration, i] = timeTable[iteration - 1, i];
+            timeTable[iteration, i] = timeTable[iteration - 1, i - 1];
         }
-        timeTable[iteration, iteration] = references[iteration];
+        timeTable[iteration, 0] = references[iteration];
     }
 
     private double CalculatePageFaultRatio(PageFaultValue[] pageFaultVector)

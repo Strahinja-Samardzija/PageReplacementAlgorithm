@@ -1,4 +1,6 @@
-﻿namespace PageReplacementAlgorithm.Algorithms;
+﻿using System.Xml;
+
+namespace PageReplacementAlgorithm.Algorithms;
 
 internal class LRU : AbstractAlgorithm
 {
@@ -7,39 +9,29 @@ internal class LRU : AbstractAlgorithm
         AlgorithmName = nameof(AlgorithmType.LRU);
     }
 
-    private Dictionary<int, int> lastUsage = new();
-
     protected override void UpdateFramesHit(int[,] timeTable, int iteration, List<int> references)
     {
-        lastUsage[references[iteration]] = iteration;
-
-        for (int i = 0; i < FrameCount; i++)
+        int[] tableRow = new int[FrameCount];
+        Buffer.BlockCopy(timeTable, FrameCount * (iteration - 1) * sizeof(int), tableRow, 0, FrameCount * sizeof(int));
+        var rotated =
+            from reference in tableRow
+            where reference != references[iteration]
+            select reference;
+        timeTable[iteration, 0] = references[iteration];
+        for(int i = 1; i < FrameCount; i++)
         {
-            timeTable[iteration, i] = timeTable[iteration - 1, i];
+            timeTable[iteration, i] = rotated.ElementAt(i - 1);
         }
     }
 
     protected override void UpdateFramesMiss(int[,] timeTable, int iteration, List<int> references)
     {
-        lastUsage[references[iteration]] = iteration;
-
         if (iteration < FrameCount)
         {
             FillAnEmptyFrame(timeTable, iteration, references);
             return;
         }
 
-        int swapOutReference = -1;
-        int oldestUsage = int.MaxValue;
-        for (int i = 0; i < FrameCount; i++)
-        {
-            int candidateSwapOut = timeTable[iteration - 1, i];
-            if (lastUsage[candidateSwapOut] < oldestUsage)
-            {
-                oldestUsage = lastUsage[candidateSwapOut];
-                swapOutReference = candidateSwapOut;
-            }
-        }
-        ReplaceSwapOutReference(timeTable, iteration, references, swapOutReference);
+        ReplaceSwapOutReference(timeTable, iteration, references, references[iteration]);
     }
 }
